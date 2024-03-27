@@ -17,14 +17,17 @@ One limitation of this project is the inability to explore individual credit uni
 ## Conclusion
 In conclusion, while credit unions have the potential to contribute to sustainable development goals through their practices related to wages and employment, there is still work to be done to ensure greater equality and inclusion within the sector. Further research and efforts are needed to address existing disparities and promote a more inclusive and equitable workforce in credit unions.
 
-## Full Article 
+## Full Paper 
 
-(POR O LINK AQUI)
+[Working Paper](https://docs.google.com/document/d/1ENqc_3V3MdPbLz8gqp6HU8zTgwQGmwtM/edit)
 
 ## Authors
-Ricardo Theodoro
-Matheus Jones Zago
+[Ricardo Theodoro](https://github.com/rtheodoro)
+
+[Matheus Jones Zago](https://github.com/mjzago)
+
 Flávia Zancan
+
 Davi Rogério de Moura Costa
 
 
