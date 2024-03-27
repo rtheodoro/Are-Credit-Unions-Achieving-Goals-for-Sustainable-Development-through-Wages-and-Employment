@@ -8,18 +8,22 @@
 ################################################################################
 
 
+# A base foi baixada do BD OBSCOOP, usando a query
+# SELECT sigla_uf, ano, cnae_2, cbo_2002,
+# vinculo_ativo_3112, valor_remuneracao_dezembro, idade,
+# raca_cor, grau_instrucao_apos_2005,sexo,
+# tamanho_estabelecimento
+# FROM `basedosdados.br_me_rais.microdados_vinculos`
+# WHERE natureza_juridica LIKE "2143" AND vinculo_ativo_3112 = 1 AND cnae_2 LIKE '64%' AND ano >= 2010
+
 
 # Importa base ----
-# A base foi baixada do BD OBSCOOP, usando a query
-    # SELECT sigla_uf, ano, cnae_2, cbo_2002,
-    # vinculo_ativo_3112, valor_remuneracao_dezembro, idade,
-    # raca_cor, grau_instrucao_apos_2005,sexo,
-    # tamanho_estabelecimento
-    # FROM `basedosdados.br_me_rais.microdados_vinculos`
-    # WHERE natureza_juridica LIKE "2143" AND vinculo_ativo_3112 = 1 AND cnae_2 LIKE '64%' AND ano >= 2010
+coop1 <- read.csv("data_raw/rais_coopcred_CBO_2010a2016.csv")
+coop2 <- read.csv("data_raw/rais_coopcred_CBO_2017a2022.csv")
+coop <- rbind(coop1, coop2)
+rm(coop1, coop2)
 
-coop <- read.csv("data_raw/rais_coopcred_CBO_2010a2022.csv")
-
+# Criando regioes
 uf_regiao <- data.frame(
   UF = c("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", 
          "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", 
