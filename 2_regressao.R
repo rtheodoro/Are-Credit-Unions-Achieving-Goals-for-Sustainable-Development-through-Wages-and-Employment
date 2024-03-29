@@ -85,8 +85,9 @@ coop_semOutros <- coop_semOutros  |>
 # Regressão ---------------------------------------------------------------
 # Realizando a regressão de efeitos fixos
 
-coop_semOutros <- coop_semOutros |> 
+coop_semOutros_reg <- coop_semOutros |> 
   dplyr::mutate(
+    salario_def_lg = log(salario_def),
     grupo_cargo = factor(grupo_cargo, levels = c("Strategic", "Operational", "Support")),
     raca_cor = factor(raca_cor, levels = c(1, 2, 3, 4, 5)),
     sexo = ifelse(sexo == 1, "Men", "Women"),
@@ -105,11 +106,11 @@ coop_semOutros <- coop_semOutros |>
 
 
 reg_fe <- plm::plm(
-  log(salario_def) ~ ano + Regiao +
+  salario_def ~ ano + Regiao +
     idade + grau_instrucao_apos_2005 +
-    raca_cor  + sexo + grupo_cargo + tempo_emprego +
+    raca_cor + sexo + grupo_cargo + tempo_emprego +
     tamanho_estabelecimento,
-  data = coop_semOutros,
+  data = coop_semOutros_reg,
   index = c("ano", "Regiao"),
   model = "within"
 )
