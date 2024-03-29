@@ -97,39 +97,44 @@ grupo_cargo_order <- c("Support", "Operational", "Strategic")
 g_prop_women_group <- coop_semOutros |>
   dplyr::count(ano, grupo_cargo, sexo) |>
   tidyr::pivot_wider(names_from = sexo, values_from = n) |>
-  dplyr::mutate(prop = (`2`/(`2` + `1`))*100) |> # 1 masculino e 2 feminino
+  dplyr::mutate(prop = (`2` / (`2` + `1`)) * 100) |> # 1 masculino e 2 feminino
   dplyr::select(-`2`, -`1`) |> 
   tidyr::pivot_longer(cols = c("prop"), names_to = "sexo", values_to = "prop") |>
   dplyr::mutate(grupo_cargo = factor(grupo_cargo, levels = grupo_cargo_order)) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = prop, color = sexo)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
+  ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = prop, color = sexo, group = sexo)) +
+  ggplot2::geom_line(size = 1.2) +
+  ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + # Facetando na vertical
   ggplot2::labs(title = "Proportion of women by job group",
-       x = "Year",
-       y = "Proportion (%)") +
+                x = "Year",
+                y = "Proportion (%)") +
   ggplot2::theme_minimal() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
+  ggplot2::theme(
+    axis.text = ggplot2::element_text(size = 10),
+    axis.title = ggplot2::element_text(size = 12, face = "bold"),
+    legend.position = "none")  # Remover a legenda de cores
+
+
 
 
 g_prop_blackwomen_group <- coop_semOutros |>
   dplyr::mutate(mulher_negra = ifelse(sexo == 2 & raca_cor == 4 | raca_cor == 8 , 1, 0)) |> # 1 = mulher negra
   dplyr::count(ano, grupo_cargo, mulher_negra) |> 
   tidyr::pivot_wider(names_from = mulher_negra, values_from = n) |>
-  dplyr::mutate(prop = (`1`/(`1` + `0`))*100) |> # 1 femin
+  dplyr::mutate(prop = (`1`/(`1` + `0`))*100) |> # 1 mulher negra
   dplyr::select(-`1`, -`0`) |>
   tidyr::pivot_longer(cols = c("prop"), names_to = "mulher_negra", values_to = "prop") |>
   dplyr::mutate(grupo_cargo = factor(grupo_cargo, levels = grupo_cargo_order)) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = prop, color = mulher_negra)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
-  ggplot2::labs(title = "Proportion of women by job group",
+  ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = prop, color = mulher_negra,  group = mulher_negra)) +
+  ggplot2::geom_line(size = 1.2) +
+  ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + # Facetando na vertical
+  ggplot2::labs(title = "Proportion of black women by job group",
                 x = "Year",
                 y = "Proportion (%)") +
   ggplot2::theme_minimal() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
-
+  ggplot2::theme(
+    axis.text = ggplot2::element_text(size = 10),
+    axis.title = ggplot2::element_text(size = 12, face = "bold"),
+    legend.position = "none")  # Remover a legenda de cores
 
 
 
@@ -176,42 +181,17 @@ g_prop_blackpeople_group <- coop_semOutros |>
   tidyr::pivot_longer(cols = c("prop"), names_to = "raca_cor", values_to = "prop") |>
   dplyr::mutate(grupo_cargo = factor(grupo_cargo, levels = grupo_cargo_order)) |>
   dplyr::mutate(raca_cor = factor(raca_cor, levels = c("prop"))) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = prop, color = raca_cor)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
-  ggplot2::labs(title = "Percentage of black people in the workforce of Credit Unions by Job Group",
+  ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = prop, color = raca_cor,  group = raca_cor)) +
+  ggplot2::geom_line(size = 1.2) +
+  ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + # Facetando na vertical
+  ggplot2::labs(title = "Proportion of black people by job group",
                 x = "Year",
                 y = "Proportion (%)") +
   ggplot2::theme_minimal() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
-
-#Calculando uma tabela com a proporcao de pessoas por raca e ano
-
-coop_semOutros |> 
-  dplyr::count(ano, grupo_cargo, `raca_cor`) |> 
-  dplyr::mutate(raca_cor = dplyr::case_when(
-    `raca_cor` == 1 ~ "INDIGENA",
-    `raca_cor` == 2 ~ "BRANCA",
-    `raca_cor` == 4 ~ "NEGRA",
-    `raca_cor` == 6 ~ "AMARELA",
-    `raca_cor` == 8 ~ "NEGRA",
-    TRUE ~ "OUTROS"
-  )) |>
-  tidyr::pivot_wider(names_from = `raca_cor`, values_from = n, values_fn = sum) |> 
-  dplyr::mutate(prop = (NEGRA/(BRANCA + NEGRA + AMARELA + INDIGENA + OUTROS))*100) |>
-  dplyr::select(-BRANCA, -NEGRA, -AMARELA, -INDIGENA, -OUTROS) |>
-  tidyr::pivot_longer(cols = c("prop"), names_to = "raca_cor", values_to = "prop") |>
-  dplyr::mutate(raca_cor = factor(raca_cor, levels = c("prop"))) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = prop, color = raca_cor)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
-  ggplot2::labs(title = "Proporção de Negros por grupo de cargo",
-                x = "Ano",
-                y = "Proporção de Negros") +
-  ggplot2::theme_minimal() +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
+  ggplot2::theme(
+    axis.text = ggplot2::element_text(size = 10),
+    axis.title = ggplot2::element_text(size = 12, face = "bold"),
+    legend.position = "none")  # Remover a legenda de cores
 
 
 # Comparando salários de mulheres -----------------------------------------
@@ -246,63 +226,89 @@ coop_semOutros <- coop_semOutros  |>
 
 # Plotando gráfico comparando salários de mulheres e homens
 
-g_comp_salario_m_h <- coop_semOutros |> 
-  dplyr::mutate(sexo = ifelse(sexo == 1, "Men", "Women")) |> 
-  dplyr::group_by(ano, sexo) |> 
-  dplyr::summarise(salario = mean(salario_def)) |> 
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = salario, color = sexo)) +
+# Calculando as médias dos salários por ano e sexo
+salario_medio_mh <- coop_semOutros |>
+  dplyr::mutate(sexo = ifelse(sexo == 1, "Men", "Women"),
+                sex = sexo) |> 
+  dplyr::group_by(ano, sex) |> 
+  dplyr::summarise(salario = round(mean(salario_def)))
+
+# Plotando o gráfico
+# Identificando os primeiros e últimos valores de cada linha
+primeiro_ultimo_valores_mh <- salario_medio  |> 
+  dplyr::group_by(sex)  |> 
+  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+
+# Plotando o gráfico com rótulos apenas para o primeiro e último valor
+g_comp_salario_m_h <- ggplot2::ggplot(salario_medio, ggplot2::aes(x = ano, y = salario, color = sex)) +
   ggplot2::geom_line() +
+  ggplot2::geom_text(data = primeiro_ultimo_valores, ggplot2::aes(label = salario), hjust = 0.5, vjust = -1) + 
   ggplot2::labs(title = "Comparison of salaries between men and women",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
+  ggplot2::scale_x_continuous(breaks = salario_medio$ano)
 
-# Plotando gráfico comparando salários de mulheres e homens por grupo de cargo
 
-g_comp_salario_m_h_group <- coop_semOutros |> 
-  dplyr::mutate(sexo = ifelse(sexo == 1, "Men", "Women")) |> 
-  dplyr::group_by(ano, grupo_cargo, sexo) |> 
-  dplyr::summarise(salario = mean(salario_def)) |> 
-  dplyr::mutate(grupo_cargo = factor(grupo_cargo, levels = grupo_cargo_order)) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = salario, color = sexo)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
-  ggplot2::labs(title = "Comparison of salaries between men and women by group job",
+# Calculando os salários médios por ano, grupo de cargo e sexo
+salario_medio_mh_g <- coop_semOutros |> 
+  dplyr::mutate(sexo = ifelse(sexo == 1, "Men", "Women"),
+                sex = sexo) |> 
+  dplyr::group_by(ano, grupo_cargo, sex) |> 
+  dplyr::summarise(salario = round(mean(salario_def)))
+
+# Adicionando o primeiro e o último valor do salário médio para cada grupo
+primeiro_ultimo_valores <- salario_medio_mh_g |> 
+  dplyr::group_by(grupo_cargo, sex) |> 
+  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+
+# Plotando o gráfico com rótulos para os primeiros e últimos valores
+g_comp_salario_m_h_group <- salario_medio_mh_g |> 
+  ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = salario, color = sex, group = sex)) +
+  ggplot2::geom_line(size = 1.2) +
+  ggplot2::geom_text(data = primeiro_ultimo_valores, ggplot2::aes(label = salario),
+                     vjust = ifelse(primeiro_ultimo_valores$sex == "Men", -0.5, 0.05)) +
+  ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + 
+  ggplot2::labs(title = "Comparison of salaries between men and women by job group",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
-
+  ggplot2::theme(
+    axis.text = ggplot2::element_text(size = 10),
+    axis.title = ggplot2::element_text(size = 12, face = "bold"),
+  )
 
 
 # Comparando salários de pessoas negras -----------------------------------------
 
-# Plotando gráfico comparando salários de pessoas negras e brancas
-
-coop_semOutros |> 
+# Calculando os salários médios por ano, grupo de cargo e raça/cor
+salario_medio_rc_g <- coop_semOutros |> 
   dplyr::mutate(raca_cor = dplyr::case_when(
     raca_cor == 4 | raca_cor == 8 ~ "Black",
     TRUE ~ "Others"
-  )) |> 
-  dplyr::group_by(ano, grupo_cargo, raca_cor) |> 
-  dplyr::summarise(salario = mean(salario_def)) |> 
-  dplyr::mutate(grupo_cargo = factor(grupo_cargo, levels = grupo_cargo_order)) |>
-  ggplot2::ggplot(ggplot2::aes(x = ano, y = salario, color = raca_cor)) +
+  ),
+  race_color = raca_cor) |> 
+  dplyr::group_by(ano, grupo_cargo, race_color) |> 
+  dplyr::summarise(salario = round(mean(salario_def)))
+
+# Adicionando o primeiro e o último valor do salário médio para cada grupo
+primeiro_ultimo_valores_rc <- salario_medio_rc_g |> 
+  dplyr::group_by(grupo_cargo, race_color) |> 
+  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+
+# Plotando o gráfico com rótulos para os primeiros e últimos valores
+g_salario_medio_rc_g <- salario_medio_rc_g |> 
+  ggplot2::ggplot(ggplot2::aes(x = ano, y = salario, color = race_color)) +
   ggplot2::geom_line() +
-  ggplot2::facet_wrap(~grupo_cargo) +
-  ggplot2::labs(title = "Comparison of salaries between black and other people",
+  ggplot2::geom_text(data = primeiro_ultimo_valores_rc, ggplot2::aes(label = salario),
+                     vjust = ifelse(primeiro_ultimo_valores_rc$race_color == "Black", -0.5, 1.5)) +
+  ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + 
+  ggplot2::labs(title = "Comparison of salaries between black and other people by group of job",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
   ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
 
-
-
-
-
-
-
-
+ 
 
 
