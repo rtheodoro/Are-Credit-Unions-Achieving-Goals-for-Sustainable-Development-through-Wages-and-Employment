@@ -105,9 +105,9 @@ coop_semOutros <- coop_semOutros |>
 
 
 reg_fe <- plm::plm(
-  salario_def ~ ano + Regiao +
+  log(salario_def) ~ ano + Regiao +
     idade + grau_instrucao_apos_2005 +
-    raca_cor  + sexo + grupo_cargo +
+    raca_cor  + sexo + grupo_cargo + tempo_emprego +
     tamanho_estabelecimento,
   data = coop_semOutros,
   index = c("ano", "Regiao"),
@@ -116,4 +116,3 @@ reg_fe <- plm::plm(
 
 
 reg_fe |> summary()
-# 
