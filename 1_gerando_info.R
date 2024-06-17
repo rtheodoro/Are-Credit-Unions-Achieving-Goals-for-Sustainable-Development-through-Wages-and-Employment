@@ -1,5 +1,5 @@
 ################################################################################
-#          Baixando dados dos trabalhos em coop. cred. da RAIS - SQL
+#          Baixando dados dos trabalhadores em coop. cred. da RAIS - SQL
 #
 #
 #
@@ -18,32 +18,28 @@
 
 
 # Importa base ----
-coop1 <- read.csv("data_raw/rais_coopcred_CBO_2010a2016.csv")
-coop2 <- read.csv("data_raw/rais_coopcred_CBO_2017a2022.csv")
-coop <- rbind(coop1, coop2)
-rm(coop1, coop2)
+coop <- arrow::read_parquet("data_raw/rais_coopcred_CBO_2010a2022.parquet")
 
-coop1 |> dplyr::count(ano)
-coop2 |> dplyr::count(ano)
+
 # Importando dados Vinculo do SQL   ----
-con <-
-  RPostgreSQL::dbConnect(
-    RPostgreSQL::PostgreSQL(),
-    user = "coop_leitura_RFB_RAIS",
-    dbname = "coop",
-    password = "coop_leitura_RFB_RAIS",
-    host = "200.144.244.212",
-    port = '5432'
-  )                        
-
-coop_cred_rfb <- RPostgreSQL::dbGetQuery(con,"
-                   SELECT cnpj_basico, identificador_matriz_filial, situacao_cadastral, 
-                          data_situacao_cadastral, data_inicio_atividade, cnae_fiscal_principal
-                   FROM cnpj_dados_cadastrais_pj.dados_cnpj_2023 
-                   WHERE (cnae_fiscal_principal BETWEEN 6400000 AND 6499999) AND data_inicio_atividade <= 20221231
-                   ")
-RPostgreSQL::dbDisconnect(con)
-remove(con)
+# con <-
+#   RPostgreSQL::dbConnect(
+#     RPostgreSQL::PostgreSQL(),
+#     user = "coop_leitura_RFB_RAIS",
+#     dbname = "coop",
+#     password = "coop_leitura_RFB_RAIS",
+#     host = "200.144.244.212",
+#     port = '5432'
+#   )                        
+# 
+# coop_cred_rfb <- RPostgreSQL::dbGetQuery(con,"
+#                    SELECT cnpj_basico, identificador_matriz_filial, situacao_cadastral, 
+#                           data_situacao_cadastral, data_inicio_atividade, cnae_fiscal_principal
+#                    FROM cnpj_dados_cadastrais_pj.dados_cnpj_2023 
+#                    WHERE (cnae_fiscal_principal BETWEEN 6400000 AND 6499999) AND data_inicio_atividade <= 20221231
+#                    ")
+# RPostgreSQL::dbDisconnect(con)
+# remove(con)
 
 coop_cred_rfb |> dplyr::count(situacao_cadastral, identificador_matriz_filial)
 
