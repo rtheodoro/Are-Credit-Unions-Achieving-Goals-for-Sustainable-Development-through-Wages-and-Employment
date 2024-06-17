@@ -35,9 +35,9 @@
 
 # con <- bigrquery::dbConnect(
 #   bigrquery::bigquery(),
-#   project = "gothic-calling-dasdasdadas",
+#   project = "asdasd-sadasd-dasdasdadas",
 #   dataset = "bancpriv_cbo_2010a2022",
-#   billing = "gothic-calling-288asdasda521"
+#   billing = "asdasd-sdad-288asdasda521"
 # )       
 # 
 # bancpriv_20102022 <- DBI::dbGetQuery(con, "SELECT * FROM `bancpriv_cbo_2010a2022.dif_salario`")
@@ -119,6 +119,16 @@ banc_semOutros |>
   dplyr::select(ano, sexo, proporcao) |> 
   dplyr::filter(sexo == "Mulher") 
 
+
+banc_semOutros |>
+  dplyr::count(ano, sexo) |>
+  dplyr::mutate(sexo = ifelse(sexo == 1, "Homem", "Mulher")) |>
+  dplyr::group_by(ano) |>
+  dplyr::mutate(proporcao = n / sum(n) * 100) |>
+  dplyr::ungroup() |>
+  dplyr::select(ano, sexo, proporcao) |>
+  dplyr::filter(sexo == "Mulher")
+
 grupo_cargo_order <- c("Support", "Operational", "Strategic")
 
 
@@ -131,6 +141,8 @@ banc_semOutros |>
   dplyr::ungroup() |>
   dplyr::select(ano, sexo, proporcao) |> 
   dplyr::filter(sexo == "Mulher") 
+
+
 
 
 g_prop_women_group <- banc_semOutros |>
@@ -274,19 +286,19 @@ salario_medio_mh <- banc_semOutros |>
 
 # Plotando o gráfico
 # Identificando os primeiros e últimos valores de cada linha
-primeiro_ultimo_valores_mh <- salario_medio  |> 
+primeiro_ultimo_valores_mh <- salario_medio_mh  |> 
   dplyr::group_by(sex)  |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+  dplyr::slice(c(1, dplyr::n()))  # Seleciona o primeiro e último valor de cada grupo
 
 # Plotando o gráfico com rótulos apenas para o primeiro e último valor
-g_comp_salario_m_h <- ggplot2::ggplot(salario_medio, ggplot2::aes(x = ano, y = salario, color = sex)) +
+g_comp_salario_m_h <- ggplot2::ggplot(salario_medio_mh, ggplot2::aes(x = ano, y = salario, color = sex)) +
   ggplot2::geom_line() +
-  ggplot2::geom_text(data = primeiro_ultimo_valores, ggplot2::aes(label = salario), hjust = 0.5, vjust = -1) + 
+  ggplot2::geom_text(data = primeiro_ultimo_valores_mh, ggplot2::aes(label = salario), hjust = 0.5, vjust = -1) + 
   ggplot2::labs(title = "Comparison of salaries between men and women",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(breaks = salario_medio$ano)
+  ggplot2::scale_x_continuous(breaks = salario_medio_mh$ano)
 
 
 # Calculando os salários médios por ano, grupo de cargo e sexo
@@ -299,7 +311,7 @@ salario_medio_mh_g <- banc_semOutros |>
 # Adicionando o primeiro e o último valor do salário médio para cada grupo
 primeiro_ultimo_valores <- salario_medio_mh_g |> 
   dplyr::group_by(grupo_cargo, sex) |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+  dplyr::slice(c(1, dplyr::n()))  # Seleciona o primeiro e último valor de cada grupo
 
 # Plotando o gráfico com rótulos para os primeiros e últimos valores
 g_comp_salario_m_h_group <- salario_medio_mh_g |> 

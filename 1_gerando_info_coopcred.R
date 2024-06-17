@@ -25,9 +25,9 @@ coop <- arrow::read_parquet("data_raw/rais_coopcred_CBO_2010a2022.parquet")
 # con <-
 #   RPostgreSQL::dbConnect(
 #     RPostgreSQL::PostgreSQL(),
-#     user = "coop_leitura_RFB_RAIS",
+#     user = "adadasdads",
 #     dbname = "coop",
-#     password = "coop_leitura_RFB_RAIS",
+#     password = "asdsadadsds",
 #     host = "200.144.244.212",
 #     port = '5432'
 #   )                        
