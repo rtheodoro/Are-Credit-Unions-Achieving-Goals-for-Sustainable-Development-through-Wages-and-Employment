@@ -1,0 +1,136 @@
+
+- validar se o correto é: left  ou inner no join das tabelas de empresas e estabelecimentos
+
+-- objetivo: saber quantos CNPJs estavam ativos ano a ano
+
+-- identificador_matriz_filial = '1'
+-- cnae_fiscal_principal LIKE '64%'
+-- natureza_juridica IN ('2046', '2054', '2062')
+
+# Informações da RFB baixados da base dos dados com a query:
+
+WITH anos AS (
+
+  SELECT 2010 AS ano UNION ALL
+  SELECT 2011 UNION ALL
+  SELECT 2012 UNION ALL
+  SELECT 2013 UNION ALL
+  SELECT 2014 UNION ALL
+  SELECT 2015 UNION ALL
+  SELECT 2016 UNION ALL
+  SELECT 2017 UNION ALL
+  SELECT 2018 UNION ALL
+  SELECT 2019 UNION ALL
+  SELECT 2020 UNION ALL
+  SELECT 2021 UNION ALL
+  SELECT 2022
+
+), estabelecimentos as (
+
+  SELECT
+    cnpj_basico,
+    identificador_matriz_filial,
+    data_inicio_atividade,
+    situacao_cadastral,
+    data_situacao_cadastral,
+    cnae_fiscal_principal 
+  FROM 
+    basedosdados.br_me_cnpj.estabelecimentos 
+ WHERE
+    data = (SELECT MAX(data) FROM basedosdados.br_me_cnpj.estabelecimentos)
+    and identificador_matriz_filial = '1'
+    AND cnae_fiscal_principal LIKE '64%'    
+
+), empresas as (
+
+  SELECT
+    cnpj_basico
+  FROM 
+    basedosdados.br_me_cnpj.empresas
+ WHERE
+    data = (SELECT MAX(data) FROM basedosdados.br_me_cnpj.empresas)
+    and natureza_juridica IN ('2046', '2054', '2062')
+
+), estabelecimentos_ativos AS (
+
+  SELECT 
+    e.cnpj_basico,
+    e.identificador_matriz_filial,
+    e.data_inicio_atividade,
+    e.situacao_cadastral,
+    e.data_situacao_cadastral,
+    e.cnae_fiscal_principal
+  FROM 
+    estabelecimentos AS e
+  LEFT JOIN 
+    empresas AS em
+  ON 
+    e.cnpj_basico = em.cnpj_basico
+
+), anos_ativos AS (
+  
+  SELECT 
+    a.ano,
+    e.cnpj_basico,
+    CASE 
+      WHEN (EXTRACT(YEAR FROM e.data_inicio_atividade) <= a.ano AND e.situacao_cadastral = '2') OR
+           (EXTRACT(YEAR FROM e.data_inicio_atividade) <= a.ano AND e.situacao_cadastral != '2' AND EXTRACT(YEAR FROM e.data_situacao_cadastral) > a.ano) 
+      THEN 1 
+      ELSE 0 
+    END AS ativo
+  FROM 
+    anos a
+  CROSS JOIN 
+    estabelecimentos_ativos e
+    
+)
+
+SELECT 
+  ano,
+  COUNT(DISTINCT cnpj_basico) AS quantidade_estabelecimentos_ativos
+FROM 
+  anos_ativos
+WHERE 
+  ativo = 1
+GROUP BY 
+  ano
+ORDER BY 
+  ano;
+
+
+# A base da RAIS foi baixada da Base dos Dados, usando a query
+
+ SELECT 
+ sigla_uf, 
+ ano, 
+ cnae_2, 
+ cbo_2002,
+ vinculo_ativo_3112, 
+ valor_remuneracao_dezembro, 
+ idade,
+ raca_cor, 
+ grau_instrucao_apos_2005,
+ sexo,
+ tamanho_estabelecimento, 
+ tempo_emprego
+ FROM 
+ `basedosdados.br_me_rais.microdados_vinculos`
+ WHERE 
+ natureza_juridica IN ('2046', '2054', '2062') 
+ AND vinculo_ativo_3112 = 1 
+ AND cnae_2 LIKE '64%' 
+ AND ano >= 2010;
+
+
+# Importando dados Vinculo do SQL   ----
+
+ con <- bigrquery::dbConnect(
+   bigrquery::bigquery(),
+   project = "asdasd-sadasd-dasdasdadas",
+   dataset = "bancpriv_cbo_2010a2022",
+   billing = "asdasd-sdad-288asdasda521"
+ )       
+ 
+ bancpriv_20102022 <- DBI::dbGetQuery(con, "SELECT * FROM `bancpriv_cbo_2010a2022.dif_salario`")
+ 
+ arrow::write_parquet(bancpriv_20102022, "data_raw/rais_bancpriv_cbo_2010a2022.parquet")

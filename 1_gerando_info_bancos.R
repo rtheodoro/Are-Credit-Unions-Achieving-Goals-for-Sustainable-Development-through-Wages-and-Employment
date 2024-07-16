@@ -1,5 +1,5 @@
 ################################################################################
-#          Baixando dados dos trabalhadores em bancos privados da RAIS - SQL
+#          Tratando dados dos trabalhadores em bancos privados da RAIS - SQL
 #
 #
 #
@@ -7,42 +7,9 @@
 #
 ################################################################################
 
+# Dados baixados via: big_query_financialinstiturions.txt
 
-# A base foi baixada do BD OBSCOOP, usando a query
-# SELECT 
-# sigla_uf, 
-# ano, 
-# cnae_2, 
-# cbo_2002,
-# vinculo_ativo_3112, 
-# valor_remuneracao_dezembro, 
-# idade,
-# raca_cor, 
-# grau_instrucao_apos_2005,
-# sexo,
-# tamanho_estabelecimento, 
-# tempo_emprego
-# FROM 
-# `basedosdados.br_me_rais.microdados_vinculos`
-# WHERE 
-# natureza_juridica IN ('2046', '2054', '2062') 
-# AND vinculo_ativo_3112 = 1 
-# AND cnae_2 LIKE '64%' 
-# AND ano >= 2010;
-
-
-# Importando dados Vinculo do SQL   ----
-
-# con <- bigrquery::dbConnect(
-#   bigrquery::bigquery(),
-#   project = "asdasd-sadasd-dasdasdadas",
-#   dataset = "bancpriv_cbo_2010a2022",
-#   billing = "asdasd-sdad-288asdasda521"
-# )       
-# 
-# bancpriv_20102022 <- DBI::dbGetQuery(con, "SELECT * FROM `bancpriv_cbo_2010a2022.dif_salario`")
-# 
-# arrow::write_parquet(bancpriv_20102022, "data_raw/rais_bancpriv_cbo_2010a2022.parquet")
+# Importa base ----
 
 bancpriv_20102022 <- arrow::read_parquet("data_raw/rais_bancpriv_cbo_2010a2022.parquet") 
 
