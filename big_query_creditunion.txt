@@ -26,3 +26,4 @@ coop_cred_rfb <- RPostgreSQL::dbGetQuery(con,"
 RPostgreSQL::dbDisconnect(con)
 remove(con)
 
+coop_cred_rfb <- readr::read_csv("data_raw/coop_cred_rfb.csv")

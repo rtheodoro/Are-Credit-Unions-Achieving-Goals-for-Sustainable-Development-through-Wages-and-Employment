@@ -12,7 +12,8 @@
 # Importa base ----
 coop <- arrow::read_parquet("data_raw/rais_coopcred_CBO_2010a2022.parquet")
 
-coop_cred_rfb |> dplyr::count(situacao_cadastral, identificador_matriz_filial)
+coop_cred_rfb <- arrow::read_parquet("data_raw/coop_cred_rfb.parquet")
+
 
 coop_cred_rfb$data_inicio_atividade <- lubridate::ymd(coop_cred_rfb$data_inicio_atividade)
 coop_cred_rfb$data_situacao_cadastral <- lubridate::ymd(coop_cred_rfb$data_situacao_cadastral)
@@ -83,7 +84,7 @@ cbo_coop <- coop |>
   dplyr::filter(!is.na(TITULO))  
 cbo_coop |> dplyr::filter(is.na(TITULO))  
 write.csv(cbo_coop, "data/cbo_coop_2010a2019.csv", row.names = FALSE)
-rm(cbo_completa, estrategico, operacional, suporte, con, cbo_coop)
+rm(cbo_completa, estrategico, operacional, suporte, cbo_coop)
 
 # REMOVENDO Outros para facilitar a analise
 coop_semOutros <- coop |> 
@@ -194,7 +195,7 @@ g_prop_blackpeople_group <- coop_semOutros |>
   ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = prop, color = raca_cor,  group = raca_cor)) +
   ggplot2::geom_line(size = 1.2) +
   ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + # Facetando na vertical
-  ggplot2::labs(title = "Proportion of black people by job group",
+  ggplot2::labs(title = "Proportion of black individuals by job group",
                 x = "Year",
                 y = "Proportion (%)") +
   ggplot2::theme_minimal() +
@@ -245,19 +246,19 @@ salario_medio_mh <- coop_semOutros |>
 
 # Plotando o gráfico
 # Identificando os primeiros e últimos valores de cada linha
-primeiro_ultimo_valores_mh <- salario_medio  |> 
+primeiro_ultimo_valores_mh <- salario_medio_mh  |> 
   dplyr::group_by(sex)  |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+  dplyr::slice(c(1, dplyr::n()))  # Seleciona o primeiro e último valor de cada grupo
 
 # Plotando o gráfico com rótulos apenas para o primeiro e último valor
-g_comp_salario_m_h <- ggplot2::ggplot(salario_medio, ggplot2::aes(x = ano, y = salario, color = sex)) +
+g_comp_salario_m_h <- ggplot2::ggplot(salario_medio_mh, ggplot2::aes(x = ano, y = salario, color = sex)) +
   ggplot2::geom_line() +
-  ggplot2::geom_text(data = primeiro_ultimo_valores, ggplot2::aes(label = salario), hjust = 0.5, vjust = -1) + 
+  ggplot2::geom_text(data = primeiro_ultimo_valores_mh, ggplot2::aes(label = salario), hjust = 0.5, vjust = -1) + 
   ggplot2::labs(title = "Comparison of salaries between men and women",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(breaks = salario_medio$ano)
+  ggplot2::scale_x_continuous(breaks = salario_medio_mh$ano)
 
 
 # Calculando os salários médios por ano, grupo de cargo e sexo
@@ -270,7 +271,7 @@ salario_medio_mh_g <- coop_semOutros |>
 # Adicionando o primeiro e o último valor do salário médio para cada grupo
 primeiro_ultimo_valores <- salario_medio_mh_g |> 
   dplyr::group_by(grupo_cargo, sex) |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+  dplyr::slice(c(1, dplyr::n()))  # Seleciona o primeiro e último valor de cada grupo
 
 # Plotando o gráfico com rótulos para os primeiros e últimos valores
 g_comp_salario_m_h_group <- salario_medio_mh_g |> 
@@ -301,24 +302,29 @@ salario_medio_rc_g <- coop_semOutros |>
   dplyr::group_by(ano, grupo_cargo, race_color) |> 
   dplyr::summarise(salario = round(mean(salario_def)))
 
-# Adicionando o primeiro e o último valor do salário médio para cada grupo
-primeiro_ultimo_valores_rc <- salario_medio_rc_g |> 
-  dplyr::group_by(grupo_cargo, race_color) |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
 
-# Plotando o gráfico com rótulos para os primeiros e últimos valores
+primeiro_ultimo_valores_rc <- salario_medio_rc_g |> 
+  dplyr::arrange(grupo_cargo) |> 
+  dplyr::group_by(grupo_cargo, race_color) |> 
+  dplyr::slice(c(1, dplyr::n()))
+
+
+# Definindo a ordem dos níveis do fator grupo_cargo
+salario_medio_rc_g$grupo_cargo <- factor(salario_medio_rc_g$grupo_cargo,
+                                         levels = c("Support", "Operational", "Strategic"))
+
+# Gráfico com todos os valores no eixo X e ordem correta dos grupos
 g_salario_medio_rc_g <- salario_medio_rc_g |> 
   ggplot2::ggplot(ggplot2::aes(x = ano, y = salario, color = race_color)) +
   ggplot2::geom_line() +
   ggplot2::geom_text(data = primeiro_ultimo_valores_rc, ggplot2::aes(label = salario),
                      vjust = ifelse(primeiro_ultimo_valores_rc$race_color == "Black", -0.5, 1.5)) +
   ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + 
-  ggplot2::labs(title = "Comparison of salaries between black and other people by group of job",
+  ggplot2::labs(title = "Comparison of salaries between black individuals and others by group of job",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
+  ggplot2::scale_x_continuous(breaks = unique(salario_medio_rc_g$ano))
 
- 
-
+print(g_salario_medio_rc_g)
 

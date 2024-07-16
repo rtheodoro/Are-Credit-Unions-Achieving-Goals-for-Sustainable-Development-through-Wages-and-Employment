@@ -67,7 +67,7 @@ cbo_bp <- bancpriv_20102022 |>
   dplyr::filter(!is.na(TITULO))  
 cbo_bp |> dplyr::filter(is.na(TITULO))  
 write.csv(cbo_bp, "data/cbo_bp_2010a2019.csv", row.names = FALSE)
-rm(cbo_completa, estrategico, operacional, suporte, con, cbo_coop)
+rm(cbo_completa, estrategico, operacional, suporte, cbo_coop)
 
 # REMOVENDO Outros para facilitar a analise
 banc_semOutros <- bancpriv_20102022 |> 
@@ -202,7 +202,7 @@ g_prop_blackpeople_group <- banc_semOutros |>
   ggplot2::ggplot(ggplot2::aes(x = factor(ano), y = prop, color = raca_cor,  group = raca_cor)) +
   ggplot2::geom_line(size = 1.2) +
   ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + # Facetando na vertical
-  ggplot2::labs(title = "Proportion of black people by job group",
+  ggplot2::labs(title = "Proportion of black individuals by job group",
                 x = "Year",
                 y = "Proportion (%)") +
   ggplot2::theme_minimal() +
@@ -311,8 +311,9 @@ salario_medio_rc_g <- banc_semOutros |>
 
 # Adicionando o primeiro e o último valor do salário médio para cada grupo
 primeiro_ultimo_valores_rc <- salario_medio_rc_g |> 
+  dplyr::arrange(grupo_cargo) |> 
   dplyr::group_by(grupo_cargo, race_color) |> 
-  dplyr::slice(c(1, n()))  # Seleciona o primeiro e último valor de cada grupo
+  dplyr::slice(c(1, dplyr::n()))  # Seleciona o primeiro e último valor de cada grupo
 
 # Plotando o gráfico com rótulos para os primeiros e últimos valores
 g_salario_medio_rc_g <- salario_medio_rc_g |> 
@@ -321,11 +322,11 @@ g_salario_medio_rc_g <- salario_medio_rc_g |>
   ggplot2::geom_text(data = primeiro_ultimo_valores_rc, ggplot2::aes(label = salario),
                      vjust = ifelse(primeiro_ultimo_valores_rc$race_color == "Black", -0.5, 1.5)) +
   ggplot2::facet_grid(grupo_cargo ~ ., scales = "free_y") + 
-  ggplot2::labs(title = "Comparison of salaries between black and other people by group of job",
+  ggplot2::labs(title = "Comparison of salaries between black individuals and others by group of job",
                 x = "Year",
                 y = "Salary (R$)") +
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 1))
+  ggplot2::scale_x_continuous(breaks = unique(salario_medio_rc_g$ano), labels = scales::number_format(accuracy = 1))
 
 
 
