@@ -73,7 +73,6 @@ coop <- coop |>
 # Calcular a taxa média de crescimento por ano da quantidade de trabalhadores
 coop |> dplyr::count(ano) |> dplyr::arrange(ano) |> dplyr::mutate(taxa = ifelse(ano == lag(ano), NA, (n - lag(n))/lag(n)*100))
 
-
 # importando cbo completa do concla
 cbo_completa <- read.csv2("data_raw/CBO2002 - Ocupacao.csv")
 cbo_coop <- coop |> 
@@ -124,8 +123,7 @@ g_prop_women_group <- coop_semOutros |>
     axis.title = ggplot2::element_text(size = 12, face = "bold"),
     legend.position = "none")  # Remover a legenda de cores
 
-
-
+# Agrupando por mulher negra, ano e grupo_cargo -----------------------------------
 
 g_prop_blackwomen_group <- coop_semOutros |>
   dplyr::mutate(mulher_negra = ifelse(sexo == 2 & raca_cor == 4 | raca_cor == 8 , 1, 0)) |> # 1 = mulher negra
@@ -146,7 +144,6 @@ g_prop_blackwomen_group <- coop_semOutros |>
     axis.text = ggplot2::element_text(size = 10),
     axis.title = ggplot2::element_text(size = 12, face = "bold"),
     legend.position = "none")  # Remover a legenda de cores
-
 
 
 # Agrupando por raca, ano e grupo_cargo -----------------------------------
@@ -214,6 +211,7 @@ ajustar_salario <- function(salario, ano) {
   inflacao <- deflateBR::deflate(salario, data_base, data_referencia, "ipca")
   return(inflacao)
 }
+
 # Aplicando a função para cada ano de 2010 a 2022
 coop_semOutros <- coop_semOutros  |> 
   dplyr::mutate(
